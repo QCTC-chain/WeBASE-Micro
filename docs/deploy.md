@@ -163,6 +163,10 @@ docker-compose up -d
 
 以上步骤执行完之后，即完成了WeBASE-Micro的部署，浏览器访问对应的ip地址即可进入webase的登录页面。初始账户密码：admin/admin123。
 
+### 配置可视化部署主机的rsa公私钥
+
+本系统默认nacos的配置中设置了部署主机rsa的测试公私钥，为了安全起见，建议生成自己的公私钥，配置到nacos配置中，具体的配置请访问`http://ip:8848/nacos`，然后配置列表中选择prod命名空间，搜索`application-common.yml`配置，修改host-mgr配置下的ssh-rsa和ssh-key。具体的秘钥对生成方法请参考：https://webasedoc.readthedocs.io/zh-cn/latest/docs/WeBASE-Install/visual_deploy.html#id8
+
 ## 4 其他说明
 
 bcos3.4版本可视化部署使用的是将front和节点打包的镜像，目前已经上传到docker hub上了，如果后续有改动，则需要进行以下步骤
