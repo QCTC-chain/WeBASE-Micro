@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webank.host.mapper.HostMapper">
+
+    <resultMap type="com.webank.host.domain.Host" id="SysHostResult">
+        <result property="id" column="id"/>
+        <result property="rootDir" column="root_dir"/>
+        <result property="user" column="user"/>
+        <result property="ip" column="ip"/>
+        <result property="port" column="port"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="userId" column="user_Id"/>
+        <result property="deptId" column="dept_Id"/>
+    </resultMap>
+
+
+</mapper>

@@ -1,0 +1,369 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0.31
+    container_name: mysql
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+      # root 密码
+      MYSQL_ROOT_PASSWORD: webase123
+#      # 初始化数据库
+#      MYSQL_DATABASE: webase-cloud
+    ports:
+      - "3306:3306"
+    volumes:
+      # 数据挂载
+      - ./mysql/data/:/var/lib/mysql/
+      # 配置挂载
+      - ./mysql/conf/:/etc/mysql/conf.d/
+    command:
+      # 将mysql8.0默认密码策略 修改为 原先 策略 (mysql8.0对其默认策略做了更改 会导致密码无法匹配)
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+    privileged: true
+
+  redis:
+    image: redis:6.2.7
+    container_name: redis
+    #    ports:
+    #      - "6379:6379"
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    volumes:
+      # 配置文件
+      - ./redis/conf:/redis/config
+      # 数据文件
+      - ./redis/data/:/redis/data/
+    command: "redis-server /redis/config/redis.conf"
+    privileged: true
+
+  minio:
+    image: minio/minio:RELEASE.2023-03-24T21-41-23Z
+    container_name: minio
+    ports:
+      # api 端口
+      - "9000:9000"
+      # 控制台端口
+      - "9001:9001"
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+      # 管理后台用户名
+      MINIO_ROOT_USER: webase
+      # 管理后台密码，最小8个字符
+      MINIO_ROOT_PASSWORD: webase1234
+      # https需要指定域名
+      #MINIO_SERVER_URL: "https://xxx.com:9000"
+      #MINIO_BROWSER_REDIRECT_URL: "https://xxx.com:9001"
+      # 开启压缩 on 开启 off 关闭
+      MINIO_COMPRESS: "off"
+      # 扩展名 .pdf,.doc 为空 所有类型均压缩
+      MINIO_COMPRESS_EXTENSIONS: ""
+      # mime 类型 application/pdf 为空 所有类型均压缩
+      MINIO_COMPRESS_MIME_TYPES: ""
+    volumes:
+      # 映射当前目录下的data目录至容器内/data目录
+      - ./minio/data:/data
+      # 映射配置目录
+      - ./minio/config:/root/.minio/
+    command: server --address ':9000' --console-address ':9001' /data  # 指定容器中的目录 /data
+    privileged: true
+
+  nacos:
+    image: openjdk:8u201-jre-alpine
+    container_name: nacos
+    ports:
+      - "8848:8848"
+#      - "9848:9848"
+#      - "9849:9849"
+    environment:
+      TZ: Asia/Shanghai
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+    volumes:
+      # 日志目录 注意集群模式下 日志目录不能一致 需要区分例如 nacos1 nacos2
+      - ./nacos/logs/:/root/nacos/logs
+      # 集群配置文件 集群所有nacos都必须使用此文件
+      - ./nacos/conf/cluster.conf:/root/nacos/conf/cluster.conf
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./nacos/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+    depends_on:
+      - mysql
+    entrypoint: [ "/wait-for-it.sh", "mysql", "3306", "/apps/start.sh" ]
+
+  seata-server:
+    image: anapsix/alpine-java:8_server-jre_unlimited
+    container_name: seata-server
+#    ports:
+#      - "7091:7091"
+#      - "8091:8091"
+    environment:
+      TZ: Asia/Shanghai
+      # 注意 此处ip如果是外网使用 要改为外网ip
+      # SEATA_IP: 127.0.0.1
+      SEATA_PORT: 8091
+    volumes:
+      # skywalking 探针
+      - ./skywalking/agent/:/webase/skywalking/agent
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./webase-seata-server/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+      - ./webase-seata-server/logs/:/apps/logs
+    depends_on:
+      - nacos
+    entrypoint: [ "/wait-for-it.sh", "nacos", "8848", "/apps/start.sh" ]
+    privileged: true
+
+  sentinel:
+    image: anapsix/alpine-java:8_server-jre_unlimited
+    container_name: sentinel
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "8718:8718"
+    volumes:
+      # skywalking 探针
+      - ./skywalking/agent/:/webase/skywalking/agent
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./webase-sentinel-dashboard/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+      - ./webase-sentinel-dashboard/logs/:/apps/logs
+    depends_on:
+      - nacos
+    entrypoint: [ "/wait-for-it.sh", "nacos", "8848", "/apps/start.sh" ]
+    restart: always
+
+#  webase-monitor:
+#    image: anapsix/alpine-java:8_server-jre_unlimited
+#    container_name: webase-monitor
+#    environment:
+#      # 时区上海
+#      TZ: Asia/Shanghai
+#    ports:
+#      - "9100:9100"
+#    volumes:
+#      # 配置文件
+#      - ./common/wait-for-it.sh:/wait-for-it.sh
+#      - ./webase-monitor/apps/:/apps
+#      - ./common/start.sh:/apps/start.sh
+#      - ./webase-monitor/logs/:/apps/logs
+#      # skywalking 探针
+#      - ./skywalking/agent/:/webase/skywalking/agent
+#    depends_on:
+#      - sentinel
+#    entrypoint: [ "/wait-for-it.sh", "sentinel", "8718", "/apps/start.sh" ]
+#    privileged: true
+
+#  webase-xxl-job-admin:
+#    image: anapsix/alpine-java:8_server-jre_unlimited
+#    container_name: webase-xxl-job-admin
+#    environment:
+#      # 时区上海
+#      TZ: Asia/Shanghai
+#    ports:
+#      - "9900:9900"
+#    volumes:
+#      # 配置文件
+#      - ./common/wait-for-it.sh:/wait-for-it.sh
+#      - ./webase-xxl-job-admin/apps/:/apps
+#      - ./common/start.sh:/apps/start.sh
+#      - ./webase-xxl-job-admin/logs/:/apps/logs
+#      # skywalking 探针
+#      - ./skywalking/agent/:/webase/skywalking/agent
+#    depends_on:
+#      - sentinel
+#    entrypoint: [ "/wait-for-it.sh", "sentinel", "8718", "/apps/start.sh" ]
+#    privileged: true
+#
+#  webase-job:
+#    image: anapsix/alpine-java:8_server-jre_unlimited
+#    container_name: webase-job
+#    environment:
+#      # 时区上海
+#      TZ: Asia/Shanghai
+#    #    ports:
+#    #      - "9203:9203"
+#    volumes:
+#      # 配置文件
+#      - ./common/wait-for-it.sh:/wait-for-it.sh
+#      - ./webase-job/apps/:/apps
+#      - ./common/start.sh:/apps/start.sh
+#      - ./webase-job/logs/:/apps/logs
+#      # skywalking 探针
+#      - ./skywalking/agent/:/webase/skywalking/agent
+#    depends_on:
+#      - webase-xxl-job-admin
+#    entrypoint: [ "/wait-for-it.sh", "webase-xxl-job-admin", "9900", "/apps/start.sh" ]
+#    privileged: true
+
+  webase-resource:
+      image: anapsix/alpine-java:8_server-jre_unlimited
+      container_name: webase-resource
+      environment:
+        # 时区上海
+        TZ: Asia/Shanghai
+      #    ports:
+      #      - "9204:9204"
+      volumes:
+        # 配置文件
+        - ./common/wait-for-it.sh:/wait-for-it.sh
+        - ./webase-resource/apps/:/apps
+        - ./common/start.sh:/apps/start.sh
+        - ./webase-resource/logs/:/apps/logs
+        # skywalking 探针
+        - ./skywalking/agent/:/webase/skywalking/agent
+      depends_on:
+        - seata-server
+        - sentinel
+      entrypoint: [ "/wait-for-it.sh", "seata-server", "8091", "/apps/start.sh" ]
+
+  webase-system:
+    image: anapsix/alpine-java:8_server-jre_unlimited
+    container_name: webase-system
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    #    ports:
+    #      - "9201:9201"
+    volumes:
+      # 配置文件
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./webase-system/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+      - ./webase-system/logs/:/apps/logs
+      # skywalking 探针
+      - ./skywalking/agent/:/webase/skywalking/agent
+    depends_on:
+      - webase-resource
+    entrypoint: [ "/wait-for-it.sh", "webase-resource", "9204", "/apps/start.sh" ]
+    privileged: true
+
+  webase-auth:
+    image: anapsix/alpine-java:8_server-jre_unlimited
+    container_name: webase-auth
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    #    ports:
+    #      - "9210:9210"
+    volumes:
+      # 配置文件
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./webase-auth/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+      - ./webase-auth/logs/:/apps/logs
+      # skywalking 探针
+      - ./skywalking/agent/:/webase/skywalking/agent
+    depends_on:
+      - webase-system
+    entrypoint: [ "/wait-for-it.sh", "webase-system", "9201", "/apps/start.sh" ]
+    privileged: true
+
+  webase-host-mgr:
+    image: anapsix/alpine-java:8_server-jre_unlimited
+    container_name: webase-host-mgr
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    #    ports:
+    #      - "9205:9205"
+    volumes:
+      # 配置文件
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./webase-host-mgr/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+      - ./webase-host-mgr/logs/:/apps/logs
+      # skywalking 探针
+      - ./skywalking/agent/:/webase/skywalking/agent
+    depends_on:
+      - webase-auth
+    entrypoint: [ "/wait-for-it.sh", "webase-auth", "9210", "/apps/start.sh" ]
+    privileged: true
+
+  bcos3-sign:
+    image: webasepro/webase-sign-micro:v3.1.1
+    container_name: bcos3-sign
+    depends_on:
+      - mysql
+    ports:
+      - "5004:5004"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 5004
+      WEBASE_DB_IP: mysql
+      WEBASE_DB_PORT: 3306
+      WEBASE_DB_NAME: webasesign
+      WEBASE_DB_UNAME: root
+      WEBASE_DB_PWD: webase123
+    volumes:
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./bcos3/sign/log:/dist/log
+      - ./bcos3/script/sign-start.sh:/start.sh
+    entrypoint: [ "bash", "/wait-for-it.sh", "mysql", "3306", "/start.sh" ]
+
+  bcos3-node-mgr:
+    image: webasepro/webase-node-mgr-micro:v3.1.1
+    container_name: bcos3-node-mgr
+    depends_on:
+      - bcos3-sign
+    #    ports:
+    #      - "6001:6001"
+    volumes:
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./bcos3/node-mgr/log:/dist/log
+      - ./bcos3/script/mgr-start.sh:/start.sh
+      - ./bcos3/node-mgr/ansible/ansible.cfg:/etc/ansible/ansible.cfg
+      - ./bcos3/node-mgr/NODES_ROOT:/dist/NODES_ROOT
+    entrypoint: [ "bash", "/wait-for-it.sh", "bcos3-sign", "5004", "/start.sh" ]
+
+  webase-gateway:
+    image: anapsix/alpine-java:8_server-jre_unlimited
+    container_name: webase-gateway
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    ports:
+      - "8080:8080"
+    volumes:
+      # 配置文件
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+      - ./webase-gateway/apps/:/apps
+      - ./common/start.sh:/apps/start.sh
+      - ./webase-gateway/logs/:/apps/logs
+      # skywalking 探针
+      - ./skywalking/agent/:/webase/skywalking/agent
+    depends_on:
+      - webase-auth
+    entrypoint: [ "/wait-for-it.sh", "webase-auth", "9210", "/apps/start.sh" ]
+    privileged: true
+
+  nginx-web:
+    image: nginx:1.22.1
+    container_name: nginx-web
+    environment:
+      # 时区上海
+      TZ: Asia/Shanghai
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # 证书映射
+      - ./nginx/cert:/etc/nginx/cert
+      # 配置文件映射
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      # 页面目录
+      - ./nginx/html:/usr/share/nginx/html
+      # 日志目录
+      - ./nginx/log:/var/log/nginx
+      - ./nginx/start.sh:/start.sh
+      - ./common/wait-for-it.sh:/wait-for-it.sh
+    depends_on:
+      - webase-gateway
+    entrypoint: [ "bash", "wait-for-it.sh", "webase-gateway", "8080", "/start.sh" ]
+    privileged: true

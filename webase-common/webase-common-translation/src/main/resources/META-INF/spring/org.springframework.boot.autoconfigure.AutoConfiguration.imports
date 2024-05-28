@@ -1,0 +1,5 @@
+com.webank.common.translation.config.TranslationConfig
+com.webank.common.translation.core.impl.DeptNameTranslationImpl
+com.webank.common.translation.core.impl.DictTypeTranslationImpl
+com.webank.common.translation.core.impl.OssUrlTranslationImpl
+com.webank.common.translation.core.impl.UserNameTranslationImpl

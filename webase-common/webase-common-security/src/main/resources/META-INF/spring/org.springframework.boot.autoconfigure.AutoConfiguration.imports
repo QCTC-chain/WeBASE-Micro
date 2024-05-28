@@ -1,0 +1,2 @@
+com.webank.common.security.handler.GlobalExceptionHandler
+com.webank.common.security.config.SecurityConfiguration

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.webank</groupId>
+        <artifactId>webase-modules</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>webase-system</artifactId>
+
+    <description>
+        webase-system系统模块
+    </description>
+
+    <dependencies>
+
+        <!-- SpringCloud Alibaba Nacos -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- SpringCloud Alibaba Nacos Config -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-sentinel</artifactId>
+        </dependency>
+
+        <!-- Common Log -->
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-log</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-dict</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-doc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-mybatis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-dubbo</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-seata</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-common-security</artifactId>
+        </dependency>
+
+        <!-- Api System -->
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-api-system</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.webank</groupId>
+            <artifactId>webase-api-resource</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <copy file="target/${project.artifactId}.${project.packaging}"
+                                      tofile="../../docker/webase-system/apps/app.${project.packaging}"></copy>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

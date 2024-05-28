@@ -1,0 +1,123 @@
+# 安全配置
+security:
+  # 验证码
+  captcha:
+    # 是否开启验证码
+    enabled: true
+    # 验证码类型 math 数组计算 char 字符验证
+    type: MATH
+    # line 线段干扰 circle 圆圈干扰 shear 扭曲干扰
+    category: CIRCLE
+    # 数字验证码位数
+    numberLength: 1
+    # 字符验证码长度
+    charLength: 4
+  # 防止XSS攻击
+  xss:
+    enabled: true
+    excludeUrls:
+      - /system/notice
+  # 不校验白名单
+  ignore:
+    whites:
+      - /code
+      - /auth/logout
+      - /auth/login
+      - /auth/smsLogin
+      - /auth/xcxLogin
+      - /auth/register
+      - /resource/sms/code
+      - /*/v3/api-docs
+      - /csrf
+
+spring:
+  cloud:
+    # 网关配置
+    gateway:
+      # 打印请求日志(自定义)
+      requestLog: true
+      discovery:
+        locator:
+          lowerCaseServiceId: true
+          enabled: true
+      routes:
+        # 认证中心
+        - id: webase-auth
+          uri: lb://webase-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            # 验证码处理
+            - ValidateCodeFilter
+            - StripPrefix=1
+        # 代码生成
+        - id: webase-gen
+          uri: lb://webase-gen
+          predicates:
+            - Path=/code/**
+          filters:
+            - StripPrefix=1
+        # 系统模块
+        - id: webase-system
+          uri: lb://webase-system
+          predicates:
+            - Path=/system/**
+          filters:
+            - StripPrefix=1
+        # 资源服务
+        - id: webase-resource
+          uri: lb://webase-resource
+          predicates:
+            - Path=/resource/**
+          filters:
+            - StripPrefix=1
+        # 演示服务
+        - id: webase-demo
+          uri: lb://webase-demo
+          predicates:
+            - Path=/demo/**
+          filters:
+            - StripPrefix=1
+        # MQ演示服务
+        - id: webase-stream-mq
+          uri: lb://webase-stream-mq
+          predicates:
+            - Path=/stream-mq/**
+          filters:
+            - StripPrefix=1
+        # 主机管理模块
+        - id: webase-host-mgr
+          uri: lb://webase-host-mgr
+          predicates:
+            - Path=/host-mgr/**
+          filters:
+            - StripPrefix=1
+        # bcos3节点管理模块(v3)
+        - id: bcos3-node-mgr
+          uri: lb://bcos3-node-mgr
+          predicates:
+            - Path=/node-mgr3/**
+          filters:
+            - StripPrefix=1
+        # bcos3签名服务(v3)
+        - id: bcos3-sign
+          uri: lb://bcos3-sign
+          predicates:
+            - Path=/sign3/**
+          filters:
+            - StripPrefix=1
+
+    # sentinel 配置
+    sentinel:
+      filter:
+        enabled: false
+      # nacos配置持久化
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${spring.cloud.nacos.server-addr}
+            dataId: sentinel-${spring.application.name}.json
+            groupId: ${spring.cloud.nacos.config.group}
+            namespace: ${spring.profiles.active}
+            data-type: json
+            rule-type: gw-flow

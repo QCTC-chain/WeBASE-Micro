@@ -1,0 +1,1 @@
+customDubboLoadBalancer=com.webank.common.loadbalance.core.CustomDubboLoadBalancer

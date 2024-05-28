@@ -1,0 +1,3 @@
+com.webank.common.mybatis.config.MybatisPlusConfiguration
+com.webank.common.mybatis.handler.MybatisExceptionHandler
+com.webank.common.mybatis.service.SysDataScopeService

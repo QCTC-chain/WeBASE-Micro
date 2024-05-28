@@ -1,0 +1,1 @@
+dubboDataPermissionFilter=com.webank.common.mybatis.filter.DubboDataPermissionFilter

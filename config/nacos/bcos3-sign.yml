@@ -1,0 +1,35 @@
+spring:
+  cache:
+    type: simple
+  datasource:
+    # type: ${spring.datasource.type}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${datasource.bcos3-sign-master.url}
+    username: ${datasource.bcos3-sign-master.username}
+    password: ${datasource.bcos3-sign-master.password}
+    initialSize: 10
+    minIdle: 5
+    maxActive: 30
+  # fix swagger
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+constant:
+  # aes加密key（16位）
+  aesKey: EfdsW23D23d3df43
+  # aes加密模式 v1.4.0+ 默认CBC（v1.4.0前默认为ECB）
+  aesPattern: CBC
+  keepAliveRequests: 100
+  KeepAliveTimeout: 30000
+  syncUsrCacheTaskFixedDelay: 10000
+  # 返回值是否支持私钥传输
+  supportPrivateKeyTransfer: true
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+
+logging:
+  config: classpath:log4j2.xml
+  level:
+    com.webank.webase.sign: info

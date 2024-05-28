@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.webank</groupId>
+        <artifactId>webase-cloud-plus</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>webase-common-bom</module>
+        <module>webase-common-alibaba-bom</module>
+        <module>webase-common-log</module>
+        <module>webase-common-dict</module>
+        <module>webase-common-excel</module>
+        <module>webase-common-core</module>
+        <module>webase-common-redis</module>
+        <module>webase-common-doc</module>
+        <module>webase-common-security</module>
+        <module>webase-common-satoken</module>
+        <module>webase-common-web</module>
+        <module>webase-common-mybatis</module>
+        <module>webase-common-job</module>
+        <module>webase-common-dubbo</module>
+        <module>webase-common-seata</module>
+        <module>webase-common-loadbalancer</module>
+        <module>webase-common-oss</module>
+        <module>webase-common-idempotent</module>
+        <module>webase-common-mail</module>
+        <module>webase-common-sms</module>
+        <module>webase-common-logstash</module>
+        <module>webase-common-elasticsearch</module>
+        <module>webase-common-sentinel</module>
+        <module>webase-common-skylog</module>
+        <module>webase-common-prometheus</module>
+        <module>webase-common-translation</module>
+        <module>webase-common-encrypt</module>
+    </modules>
+
+    <artifactId>webase-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        webase-common通用模块
+    </description>
+
+</project>
