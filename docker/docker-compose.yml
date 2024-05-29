@@ -76,7 +76,7 @@ services:
     privileged: true
 
   nacos:
-    image: anapsix/alpine-java:8_server-jre_unlimited
+    image: openjdk:8u201-jre-alpine
     container_name: nacos
     ports:
       - "8848:8848"
