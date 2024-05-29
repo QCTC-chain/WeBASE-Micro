@@ -76,7 +76,7 @@ services:
     privileged: true
 
   nacos:
-    image: openjdk:8u201-jre-alpine
+    image: anapsix/alpine-java:8_server-jre_unlimited
     container_name: nacos
     ports:
       - "8848:8848"
@@ -287,7 +287,7 @@ services:
     privileged: true
 
   bcos3-sign:
-    image: webasepro/webase-sign-micro:v3.1.1
+    image: registry.cn-beijing.aliyuncs.com/qchain/webase-sign-micro:v3.1.1
     container_name: bcos3-sign
     depends_on:
       - mysql
@@ -308,7 +308,7 @@ services:
     entrypoint: [ "bash", "/wait-for-it.sh", "mysql", "3306", "/start.sh" ]
 
   bcos3-node-mgr:
-    image: webasepro/webase-node-mgr-micro:v3.1.1
+    image: registry.cn-beijing.aliyuncs.com/qchain/webase-node-mgr-micro:v3.1.1
     container_name: bcos3-node-mgr
     depends_on:
       - bcos3-sign
